@@ -5,7 +5,7 @@ package MooseX::Role::WarnOnConflict;
 use warnings;
 use strict;
 
-our $VERSION = 0.01;
+our $VERSION = '0.01';
 
 use MooseX::Meta::Role::WarnOnConflict;
 use Moose::Role;

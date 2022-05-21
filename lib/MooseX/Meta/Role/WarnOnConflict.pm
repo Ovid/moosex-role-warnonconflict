@@ -5,7 +5,7 @@ package MooseX::Meta::Role::WarnOnConflict;
 use Moose;
 extends 'Moose::Meta::Role';
 
-our $VERSION = 0.01;
+our $VERSION = '0.01';
 
 override apply => sub {
     my ( $self, $other, @args ) = @_;
