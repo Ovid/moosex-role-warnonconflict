@@ -138,6 +138,19 @@ To resolve this, explicitly exclude the 'conflict' method:
         sub conflict {}
     }
 
+Aliasing a role method to an existing method will also warn:
+
+    {
+        package My::Class;
+        use Moose;
+        with 'My::Role' => {
+            -excludes => ['conflict'],
+            -alias    => { conflict => 'another_method' },
+        };
+        sub conflict       { }
+        sub another_method { }
+    }
+
 =head1 DESCRIPTION
 
 B<WARNING>:  this is ALPHA code.  More features to be added later.
