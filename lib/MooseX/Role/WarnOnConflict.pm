@@ -1,9 +1,11 @@
 package MooseX::Role::WarnOnConflict;
 
+# ABSTRACT: Warn if classes override role methods without excluding them
+
 use warnings;
 use strict;
 
-our $VERSION = 0.05;
+our $VERSION = 0.01;
 
 use MooseX::Meta::Role::WarnOnConflict;
 use Moose::Role;
@@ -19,22 +21,28 @@ sub init_meta {
 }
 
 package    # Hide from PAUSE
-  MooseX::Meta::Role::Application::ToClass::Strict;
+  MooseX::Meta::Role::Application::ToClass::WarnOnConflig;
 use Moose;
+use Carp 'carp';
+our @CARP_NOT = (__PACKAGE__);
 extends 'Moose::Meta::Role::Application::ToClass';
 
 sub apply_methods {
     my ( $self, $role, $class ) = @_;
     my @implicitly_overridden;
 
-    foreach my $method_name ( $role->get_method_list ) {
-        next if 'meta' eq $method_name; # Moose auto-exports this
+    METHOD: foreach my $method_name ( $role->get_method_list ) {
+        next METHOD if 'meta' eq $method_name;    # Moose auto-exports this
         unless ( $self->is_method_excluded($method_name) ) {
+
             # it if it has one already
             if (
-                $class->has_method($method_name) &&
+                $class->has_method($method_name)
+                &&
+
                 # and if they are not the same thing ...
-                $class->get_method($method_name)->body != $role->get_method($method_name)->body
+                $class->get_method($method_name)->body !=
+                $role->get_method($method_name)->body
               )
             {
                 push @implicitly_overridden => $method_name;
@@ -43,6 +51,7 @@ sub apply_methods {
             else {
                 # add method to the required methods
                 $role->add_required_methods($method_name);
+
                 # add it, although it could be overridden
                 $class->add_method( $method_name,
                     $role->get_method($method_name) );
@@ -54,12 +63,19 @@ sub apply_methods {
 
             # it if it has one already
             if (
-                $class->has_method($aliased_method_name) &&
+                $class->has_method($aliased_method_name)
+                &&
+
                 # and if they are not the same thing ...
-                $class->get_method($aliased_method_name)->body != $role->get_method($method_name)->body
+                $class->get_method($aliased_method_name)->body !=
+                $role->get_method($method_name)->body
               )
             {
-                $class->throw_error("Cannot create a method alias if a local method of the same name exists");
+                my $class_name = $class->name;
+                my $role_name  = $role->name;
+                carp(
+"$class_name should not alias $role_name '$method_name' to '$aliased_method_name' if a local method of the same name exists"
+                );
             }
             $class->add_method( $aliased_method_name,
                 $role->get_method($method_name) );
@@ -71,16 +87,16 @@ sub apply_methods {
 
         my $class_name = $class->name;
         my $role_name  = $role->name;
-        my $methods = join ', ' => @implicitly_overridden;
+        my $methods    = join ', ' => @implicitly_overridden;
+
         # we use \n because we have no hope of guessing the right stack frame,
         # it's almost certainly never going to be the one above us
-        $class->throw_error(<<"        END_ERROR");
+        carp(<<"        END_ERROR");
 The class $class_name has implicitly overridden the method$s ($methods) from
 role $role_name. If this is intentional, please exclude the method$s from
 composition to silence this warning (see Moose::Cookbook::Roles::Recipe2)
         END_ERROR
     }
-
 
     # we must reset the cache here since
     # we are just aliasing methods, otherwise
@@ -92,17 +108,9 @@ composition to silence this warning (see Moose::Cookbook::Roles::Recipe2)
 
 __END__
 
-=head1 NAME
-
-MooseX::Role::WarnOnConflict - use strict 'roles'
-
-=head1 VERSION
-
-Version 0.05
-
 =head1 SYNOPSIS
 
-This code will fail at composition time:
+This code will warn at composition time:
 
     {
         package My::Role;
@@ -136,67 +144,6 @@ B<WARNING>:  this is ALPHA code.  More features to be added later.
 
 When using L<Moose::Role>, a class which provides a method a role provides
 will silently override that method.  This can cause strange, hard-to-debug
-errors when the role's methods are not called.  Simple use
+errors when the role's methods are not called.  Simply use
 C<MooseX::Role::WarnOnConflict> instead of C<Moose::Role> and overriding a role's
-method becomes a composition-time failure.  See the synopsis for a resolution.
-
-=head1 AUTHOR
-
-Curtis "Ovid" Poe, C<< <ovid at cpan.org> >>
-
-=head1 BUGS
-
-Please report any bugs or feature requests to C<bug-moosex-role-strict at rt.cpan.org>,
-or through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=MooseX-Role-Strict>.  I will
-be notified, and then you'll automatically be notified of progress on your bug
-as I make changes.
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc MooseX::Role::WarnOnConflict
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=MooseX-Role-Strict>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/MooseX-Role-Strict>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/MooseX-Role-Strict>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/MooseX-Role-Strict/>
-
-=back
-
-=head1 ACKNOWLEDGEMENTS
-
-=head1 TODO
-
-Add C<-includes> to make things easier:
-
- with 'Some::Role' => { -includes => 'bar' };
-
-That reverses the sense of '-excludes' in case you're more interested in the
-interface than the implementation.  I'm unsure of the syntax for
-auto-converting a role to a pure interface.
-
-=head1 COPYRIGHT & LICENSE
-
-Copyright 2009 Curtis "Ovid" Poe, all rights reserved.
-
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
-
-=cut
+method becomes a composition-time warning.  See the synopsis for a resolution.

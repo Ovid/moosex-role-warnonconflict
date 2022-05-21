@@ -1,14 +1,11 @@
 #!/usr/bin/env perl
 
-use strict;
-use warnings;
-
-use Test::More tests => 4;
+use Test::Most;
+use Capture::Tiny 'capture_stderr';
 use lib 'lib';
 
 {
-
-use MooseX::Role::WarnOnConflict ();
+    use MooseX::Role::WarnOnConflict ();
 
     package My::Role::Example;
     use MooseX::Meta::Role::WarnOnConflict;
@@ -19,24 +16,41 @@ use MooseX::Role::WarnOnConflict ();
 
 isa_ok +My::Role::Example->meta, 'MooseX::Meta::Role::WarnOnConflict';
 
-eval <<'END_EVAL';
-package Foo;
-use Moose;
-with 'My::Role::Example';
-sub munge { 'munge foo' }
+my $stderr = capture_stderr {
+    eval <<'END_EVAL';
+    package Foo;
+    use Moose;
+    with 'My::Role::Example';
+    sub munge { 'munge foo' }
 END_EVAL
-
-my $error = $@;
-like $error, qr/\QThe class Foo has implicitly overridden the method (munge)/,
+};
+like $stderr, qr/\QThe class Foo has implicitly overridden the method (munge)/,
   'Implicitly overridding methods should be fatal';
 
-eval <<'END_EVAL';
-package Bar;
-use Moose;
-with 'My::Role::Example' => { -excludes => ['munge'] };
-sub munge { 'munge bar' }
+$stderr = capture_stderr {
+    eval <<'END_EVAL';
+    package Bar;
+    use Moose;
+    with 'My::Role::Example' => { -alias => { munge => 'another_name' }, -excludes => ['munge'] };
+    sub munge { 'munge bar' }
+    sub another_name {}
 END_EVAL
+};
 
-$error = $@;
-ok !$error, '... but explicitly exluding the conflicting errors should be fine';
-is Bar->munge, 'munge bar', '... and the correct method should be available';
+like $stderr, qr/Bar should not alias My::Role::Example 'munge' to 'another_name' if a local method of the same name exists/,
+  '... aliasing to an existing name should warn';
+
+$stderr = capture_stderr {
+    eval <<'END_EVAL';
+    package Baz;
+    use Moose;
+    with 'My::Role::Example' => { -excludes => ['munge'] };
+    sub munge { 'munge bar' }
+END_EVAL
+};
+
+ok !$stderr,
+  '... but explicitly exluding the conflicting errors should be fine';
+is Baz->munge, 'munge bar', '... and the correct method should be available';
+
+done_testing;
