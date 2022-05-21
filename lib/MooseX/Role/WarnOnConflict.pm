@@ -153,10 +153,9 @@ Aliasing a role method to an existing method will also warn:
 
 =head1 DESCRIPTION
 
-B<WARNING>:  this is ALPHA code.  More features to be added later.
-
 When using L<Moose::Role>, a class which provides a method a role provides
 will silently override that method.  This can cause strange, hard-to-debug
 errors when the role's methods are not called.  Simply use
-C<MooseX::Role::WarnOnConflict> instead of C<Moose::Role> and overriding a role's
-method becomes a composition-time warning.  See the synopsis for a resolution.
+C<MooseX::Role::WarnOnConflict> instead of C<Moose::Role> and overriding a
+role's method becomes a composition-time warning.  See the synopsis for a
+resolution.
