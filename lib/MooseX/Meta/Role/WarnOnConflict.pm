@@ -1,4 +1,4 @@
-package MooseX::Meta::Role::Strict;
+package MooseX::Meta::Role::WarnOnConflict;
 
 use Moose;
 extends 'Moose::Meta::Role';
@@ -23,7 +23,7 @@ __END__
 
 =head1 NAME
 
-MooseX::Meta::Role::Strict - Ensure we use strict role application.
+MooseX::Meta::Role::WarnOnConflict - Ensure we use strict role application.
 
 =head1 VERSION
 
@@ -31,7 +31,7 @@ Version 0.05
 
 =head1 DESCRIPTION
 
-This is the metaclass for C<MooseX::Role::Strict>.  For internal use only.
+This is the metaclass for C<MooseX::Role::WarnOnConflict>.  For internal use only.
 
 =head1 AUTHOR
 
@@ -49,7 +49,7 @@ as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc MooseX::Role::Strict
+    perldoc MooseX::Role::WarnOnConflict
 
 You can also look for information at:
 

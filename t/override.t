@@ -8,16 +8,16 @@ use lib 'lib';
 
 {
 
-use MooseX::Role::Strict ();
+use MooseX::Role::WarnOnConflict ();
 
     package My::Role::Example;
-    use MooseX::Meta::Role::Strict;
-    use Moose::Role -metaclass => 'MooseX::Meta::Role::Strict';
+    use MooseX::Meta::Role::WarnOnConflict;
+    use Moose::Role -metaclass => 'MooseX::Meta::Role::WarnOnConflict';
 
     sub munge { 'munge role' }
 }
 
-isa_ok +My::Role::Example->meta, 'MooseX::Meta::Role::Strict';
+isa_ok +My::Role::Example->meta, 'MooseX::Meta::Role::WarnOnConflict';
 
 eval <<'END_EVAL';
 package Foo;

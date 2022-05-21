@@ -1,11 +1,11 @@
-package MooseX::Role::Strict;
+package MooseX::Role::WarnOnConflict;
 
 use warnings;
 use strict;
 
 our $VERSION = 0.05;
 
-use MooseX::Meta::Role::Strict;
+use MooseX::Meta::Role::WarnOnConflict;
 use Moose::Role;
 use Moose::Exporter;
 Moose::Exporter->setup_import_methods( also => 'Moose::Role' );
@@ -14,7 +14,7 @@ sub init_meta {
     my ( $class, %opt ) = @_;
     return Moose::Role->init_meta(    ##
         %opt,                         ##
-        metaclass => 'MooseX::Meta::Role::Strict'
+        metaclass => 'MooseX::Meta::Role::WarnOnConflict'
     );
 }
 
@@ -94,7 +94,7 @@ __END__
 
 =head1 NAME
 
-MooseX::Role::Strict - use strict 'roles'
+MooseX::Role::WarnOnConflict - use strict 'roles'
 
 =head1 VERSION
 
@@ -106,7 +106,7 @@ This code will fail at composition time:
 
     {
         package My::Role;
-        use MooseX::Role::Strict;
+        use MooseX::Role::WarnOnConflict;
         sub conflict {}
     }
     {
@@ -137,7 +137,7 @@ B<WARNING>:  this is ALPHA code.  More features to be added later.
 When using L<Moose::Role>, a class which provides a method a role provides
 will silently override that method.  This can cause strange, hard-to-debug
 errors when the role's methods are not called.  Simple use
-C<MooseX::Role::Strict> instead of C<Moose::Role> and overriding a role's
+C<MooseX::Role::WarnOnConflict> instead of C<Moose::Role> and overriding a role's
 method becomes a composition-time failure.  See the synopsis for a resolution.
 
 =head1 AUTHOR
@@ -156,7 +156,7 @@ as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc MooseX::Role::Strict
+    perldoc MooseX::Role::WarnOnConflict
 
 You can also look for information at:
 
