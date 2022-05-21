@@ -1,0 +1,5 @@
+Revision history for MooseX-Role-WarnOnConflict
+
+{{$NEXT}}
+
+          - First pass at warning on role conflict
